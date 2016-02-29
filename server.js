@@ -5,11 +5,12 @@ global.environment = process.env.NODE_ENV?process.env.NODE_ENV:'development';
 global.development = environment !== 'production';
 console.log('running in '+environment+' mode');
 
+var settings = require('server_settings');
+
 var moment = require('moment');
 var fs = require('fs');
 var net = require('net');
 
-var settings = require('server_settings');
 var permissions = require('permissions');
 var helper_mod = require('helper')();
 
@@ -19,6 +20,10 @@ var compression = require('compression');
 var express = require('express');
 var rewrite = require('express-urlrewrite');
 var request = require('request');
+
+var cookieparser = require('cookie-parser');
+
+var apifunc = require('api_functions');
 
 var nkc = express(); //main router
 nkc.enable('trust proxy');
@@ -41,39 +46,93 @@ if(use_https){
     res.end();
   });
 
-  var tcp_router = net.createServer(tcpConnection);
-
-  function tcpConnection(conn)
-  {
-    conn.once('data', function (buf) {
-      // A TLS handshake record starts with byte 22.
-      var address = (buf[0] === 22) ? 53001 : 53000;
-      var proxy = net.createConnection(address, function () {
-        proxy.write(buf);
-        conn.pipe(proxy).pipe(conn);
-      });
-    });
-  }
 }else {
   var target_server = require('http').Server(nkc);
 }
 //-------------------------------
 
-nkc.use(compression({level:2}));//enable compression
-
-//log me
 nkc.use((req,res,next)=>{
-  requestLog(req);
+  if(development)
+  console.log("  -".yellow,req.url);
+  //log everything
   next();
 });
 
-//url rewrite
+//1. url rewrite
 for(i in settings.urlrewrite){
   nkc.use(rewrite(
     settings.urlrewrite[i].map,
     settings.urlrewrite[i].to
   ));
 }
+
+//2. static file serves
+for(i in settings.root_serve_static)
+{
+  if(settings.root_serve_static[i].map){
+    nkc.use(
+      settings.root_serve_static[i].map,
+      express.static(settings.root_serve_static[i].to,settings.static_settings)
+    );
+  } else {
+    nkc.use(
+      express.static(settings.root_serve_static[i].to,settings.static_settings)
+    );
+  }
+}
+
+nkc.use('/recruit',express.static('../ikc')); //serve company pages
+
+//3. gzip
+nkc.use(compression({level:settings.compression_level}));//enable compression
+
+//4. log me : if not static resources
+nkc.use((req,res,next)=>{
+  if(req.url.indexOf('/avatar')>=0)return next(); //dont record avatar requests
+
+  var d=new Date();
+  dash();
+  console.log(dateString(d).cyan,
+  req.ip, req.method, req.originalUrl.cyan);
+
+  next();
+});
+
+//5. parse cookie
+nkc.use(cookieparser(settings.cookie_secret));
+
+//6. obtain userinfo from cookies
+nkc.use((req,res,next)=>{
+  var userinfo = req.signedCookies.userinfo;
+  if(userinfo){//if not undefined
+    req.userinfo = JSON.parse(userinfo);//usually stored in JSON
+  }
+  next();
+});
+
+//7. obtain user (from DB)
+nkc.use((req,res,next)=>{
+  if(!req.userinfo)return next();//if userinfo (from cookie) not exist
+  if(req.url.indexOf('/avatar')>=0 && req.method != 'POST')return next();
+  //if going for avatar
+
+  //if userinfo exists
+  console.log(req.userinfo);
+  apifunc.get_user(req.userinfo.uid,(err,back)=>{
+    if(err)return next(); //let go
+    if(back.username==req.userinfo.username)
+    {
+      req.user = back;
+    }
+    else
+    {
+      //dont do a thing.
+    }
+    return next();
+  });
+});
+
+//8. routes
 
 //api serving
 var api_handlers = require('api_handlers.js');
@@ -99,20 +158,13 @@ chat_handlers.socket_handler(chat_io);//pass namespaced socket object into proce
 
 //root serving
 nkc.get('/',(req,res)=>{
-  var opt = settings.jadeoptions;
-  opt.address = req.ip.toString();
-  opt.osinfo = JSON.stringify(osinfo(),null,2);
+  var data={};
+  data.user = req.user;
+  data.userinfo = req.userinfo; //from cookies
+  data.address = req.ip.toString();
+  data.osinfo = JSON.stringify(osinfo(),null,2);
   res.send(
-    jaderender('nkc_modules/jade/index.jade',opt)
-  );
-});
-
-nkc.get('/api',(req,res)=>{
-  var opt = {};
-  opt.address = req.ip.toString();
-  opt.osinfo = JSON.stringify(osinfo(),null,2);
-  res.send(
-    jaderender('nkc_modules/jade/index.jade',opt)
+    jaderender('nkc_modules/jade/index.jade',data)
   );
 });
 
@@ -121,23 +173,14 @@ nkc.get('/reload',function(req,res){
   process.exit();
 });
 
-//static file serves
-for(i in settings.root_serve_static)
-{
-  if(settings.root_serve_static[i].map){
-    nkc.use(settings.root_serve_static[i].map,express.static(settings.root_serve_static[i].to));
-  } else {
-    nkc.use(express.static(settings.root_serve_static[i].to));
-  }
-}
-
+//7. error handling
 //unrouted url handler
 //404 handling
 nkc.get('*',(req,res)=>{
-  var opt = {};
-  opt.url = req.originalUrl;
+  var data = {};
+  data.url = req.originalUrl;
   res.status(404).send(
-    jaderender('nkc_modules/jade/404.jade',opt)
+    jaderender('nkc_modules/jade/404.jade',data)
   );
 });
 
@@ -145,31 +188,28 @@ nkc.get('*',(req,res)=>{
 //aka 500 handling
 nkc.use((err,req,res,next)=>{
   report('not handled',err.stack);
-  var opt = {};
-  opt.url = req.originalUrl;
-  opt.errormessage = err.message;
-  opt.errorstack = err.stack;
+  var data = {};
+  data.url = req.originalUrl;
+  data.err = err.stack?err.stack:JSON.stringify(err);
   res.status(500).send(
-    jaderender('nkc_modules/jade/500.jade',opt)
+    jaderender('nkc_modules/jade/500.jade',data)
   );
 });
 
 //server listening settings
 if(use_https){
   ///-----start https server-----
-  target_server.listen(53001);
+  target_server.listen(settings.server.https_port);
   //-----start http redirection server-----
-  redirection_server.listen(53000);
-  //-----start tcp router
-  tcp_router.listen(settings.server.port);
+  redirection_server.listen(settings.server.port);
 }
 else{
   //if not using https
   target_server.listen(settings.server.port);
 }
 
-var listening_addr = (use_https?tcp_router:target_server).address().address;
-var listening_port = (use_https?tcp_router:target_server).address().port;
+var listening_addr = target_server.address().address;
+var listening_port = target_server.address().port;
 dash();
 report(settings.server.name+' listening on '+listening_addr+' '+listening_port);
 

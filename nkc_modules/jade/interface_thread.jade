@@ -1,23 +1,18 @@
 extends bootstrap_base.jade
 
 block title
-  title if_t
-  meta#reply-target(value='#{replytarget}')
-  
-block styles
-  include nkc_styles.jade
+  title #{data.thread.oc.t} - 科创论坛
+  meta#replytarget(value='#{data.replytarget}')
   
 block content
-  include nkc_navbar.jade
-  
   .container
     .row
-      .col-md-9
+      .col-md-12
         div(style='margin-bottom: 10px;')
           if data.posts.length == 0
-            h3 您要找的帖子不存在。
+            h2 您要找的帖子不存在。
           else
-            h3.d-inline #{data.thread.oc.t}
+            h2.d-inline #{data.thread.oc.t}
             p.d-inline.lighttext(style='margin-left: 10px; vertical-align:text-bottom;').
               回到 #[a.lighttext(href='/forum/#{data.thread.fid}') #{data.thread.fid}] 
        
@@ -27,10 +22,9 @@ block content
               include interface_thread_singlepost.jade
           
             hr
-            a.btn.btn-default(href='/interface/editor?target=#{replytarget}') 回帖
-    .row
-      hr
-    include debug_output.jade
+            a.btn.btn-default(href='/interface/editor?target=#{data.replytarget}') 回帖
+
+  include debug_output.jade
     
 block scripts
   script(src='/interface_common.js')

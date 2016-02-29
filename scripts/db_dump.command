@@ -5,17 +5,14 @@ cd -- "$(dirname "$0")"
 
 # self-leverage, make double-clickable in OS X
 chmod +x db_dump.command
+cd ..
 
 clear
-YELLOW='\033[93m'
-NC='\033[0m' # No Color
-
-ARANGOPATH="/Applications/ArangoDB-CLI.app/Contents/MacOS/"
 
 echo ----------------
 
-echo "This script ${YELLOW}DUMPS${NC} ArangoDB database (listening on 8529) to the /dump directory."
-echo "${YELLOW}Don't continue unless you know what you are doing.${NC}"
+echo "This script DUMPS ArangoDB database (listening on 8529) to the /dump directory."
+echo "Don't continue unless you know what you are doing."
 echo
 read -p "Are you sure?(y/N)" -n 1 -r
 echo    # (optional) move to a new line
@@ -26,7 +23,7 @@ else
   #dangerous stuff here
 
   #execute
-  ${ARANGOPATH}arangodump --overwrite true --server.database nkc --output-directory "dump"
+  arangodump --overwrite true --server.database nkc --output-directory "dump"
 fi
 
 echo ----------------

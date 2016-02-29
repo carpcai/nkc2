@@ -1,10 +1,9 @@
 //api request handlers
 module.paths.push(__projectroot + 'nkc_modules'); //enable require-ment for this path
 
-var moment = require('moment');
-
+var moment = require('moment')
 var path = require('path')
-var fs = require('fs')
+var fs = require('fs.extra')
 var settings = require('server_settings.js');
 var helper_mod = require('helper.js')();
 var bodyParser = require('body-parser');
@@ -32,9 +31,16 @@ api.use(function(req,res,next){
 });
 
 //multi-part parsing.
-var upload = multer({ dest: 'tmp/' });
-api.post('/resources', upload.single('file'), function (req, res) {
-  // req.file is the `avatar` file
+//note that multer is applied AFTER body-parser.
+var upload = multer(settings.upload_options);
+api.post('/resources', upload.single('file'), function (req, res, next) {
+  //obtain user first
+  if(!req.user)
+  {
+    return next('who are you? log in first.');
+  }
+
+  // req.file is the `file` file
   // req.body will hold the text fields, if there were any
   console.log(req.file);
   /*
@@ -50,10 +56,8 @@ api.post('/resources', upload.single('file'), function (req, res) {
 
   //obtain an rid first
   apifunc.get_new_rid((err,rid)=>{
-    if(err){
-      res.status(500).json(report('rid obtain err',err));
-      return;
-    }
+    if(err)return next(err);
+
     //rid got
     var robject = {
       _key:rid,
@@ -61,21 +65,77 @@ api.post('/resources', upload.single('file'), function (req, res) {
       sname:req.file.filename,//存储名
       size:req.file.size,
       mime:req.file.mimetype,
+      username:req.user.username,
+      uid:req.user._key,
     };
 
     //storage into db
     queryfunc.doc_save(robject,'resources',function(err,result){
-      if(err){
-        res.status(500).json(report('rid saving err',err));
-        return;
-      }
+      if(err)return next(err);
 
       //success
       result.rid = result['_key'];
-      res.json(report(result));
+      res.obj = result;
+      return next();
     });
   });
 });
+
+fs.mkdirp(settings.avatar_path); //place for avatars to move to after upload
+
+var avatar_upload = multer(settings.upload_options_avatar);
+api.post('/avatar', avatar_upload.single('file'), function(req,res,next){
+  console.log(req.file);
+  if(req.file.mimetype.indexOf('image')<0)//if not the right type of file
+  return next('wrong mimetype for avatar');
+  //obtain user first
+  if(!req.user)
+  return next('who are you? log in first.');
+
+  //otherwise should we allow..
+
+  //delete before move
+  fs.unlink(settings.avatar_path+req.user._key+'.jpg',function(err){
+    //ignore error
+    fs.move(
+      req.file.path,
+      settings.avatar_path+req.user._key+'.jpg',
+      function(err){
+        if(err)
+        {
+          return next(err);
+        }
+
+        res.obj = req.file;
+        return next();
+      }
+    );
+  });
+});
+
+
+api.get('/avatar/:uid',function(req,res){
+  var uid = req.params.uid;
+
+  //success
+  fastest_file_from_paths(
+    settings.avatar_paths, //from these path
+    uid+'.jpg', //get this file
+    function(err,best_filepathname){
+      if(err){
+        //return res.status(404).json(report('image not exist',err));
+        best_filepathname = settings.default_avatar_path //set default_avatar
+      }
+
+      //if file exists somewhere
+      res.setHeader('Content-disposition', 'inline; filename=' + uid+'.jpg');
+      res.setHeader('Content-type', 'image/jpeg');
+
+      res.sendFile(best_filepathname);
+    }
+  );
+});
+
 
 api.get('/resources/:rid',function(req,res){
   var key = req.params.rid;
@@ -159,36 +219,66 @@ api.post('/angularfun',function(req,res){
 
 //----
 //counter increment api
-api.get('/new/:countername',(req,res)=>{
-  //queryfunc.incr_counter('threads',callback);
-  queryfunc.incr_counter(req.params.countername,(err,id)=>{
-    if(err){
-      res.status(500).json(report(req.params.countername +' retrieval error',err));
-    }else{
-      res.json(report(id));
-    }
+if(development){
+  api.get('/new/:countername',(req,res,next)=>{
+    //queryfunc.incr_counter('threads',callback);
+    queryfunc.incr_counter(req.params.countername,(err,id)=>{
+      if(err)return next(report(req.params.countername +' retrieval error',err));
+      res.obj = id;
+      next();
+    });
   });
+}
+
+//append userinfo into request body of POSTs
+//and necessary processing
+api.use(function preprocess_post(req,res,next){
+  if(req.method != 'POST')return next();//if not post request
+  if(!req.body.c)return next();//if body doesnt contain written content for posting, ignore
+  //require a user!!
+  if(!req.user)return next('contain content, but not logged in');
+
+  var r = validation.validatePost(req.body); //validate content
+  if(r!==true)//if failed to validate
+  {
+    return next(r);
+  }
+
+  req.body.uid = req.user._key;
+  req.body.username = req.user.username;
+
+  req.post_content_ready = true; //indicate req.body suits for posting
+  return next();
 });
+
 
 //POST /forum/:fid
 api.post('/forum/:fid',(req,res,next)=>{
-  var r = validation.validatePost(req.body);
-  if(r!=true)//if failed to validate
-  {
-    next(r);
-    return;
-  }
+  if(req.post_content_ready!==true)return next('content unready');
 
   apifunc.post_to_forum(req.body,req.params.fid.toString(),(err,result)=>{
-    if(err){
-      //res.json(report('mmm',err));
-      res.status(500).json('cant post to forum',err);
-    }else{
-      var k =result;
-      k.redirect = 'thread/'+ queryfunc.result_reform(k).id;
-      res.json(report(k));
-    }
+    if(err)return next(err);
+
+    var k =result;
+    k.redirect = 'thread/'+ queryfunc.result_reform(k).id;
+    console.log('ss');
+    res.obj = k;
+    return next();
   });
+});
+
+///POST /thread/* handler
+api.post('/thread/:tid',function(req,res,next){
+  if(req.post_content_ready!==true)return next('content unready');
+
+  apifunc.post_to_thread(req.body,req.params.tid,(err,result)=>{
+    if(err)return next(err);
+
+    result.redirect = 'thread/' + queryfunc.result_reform(result).id;
+    res.obj = result;
+    return next();
+  },
+  false);
 });
 
 //test handler.
@@ -204,22 +294,18 @@ api.get('/test2',(req,res)=>{
 
 ///----------------------------------------
 ///GET /posts/* handler
-api.get('/posts/:pid', function (req, res){
+api.get('/posts/:pid', function (req, res, next){
   //retrieve pid as parameter
   var pid=req.params.pid;
 
   //get the post from db
   apifunc.get_a_post(pid,(err,body)=>{
-    if(!err)
-    {//if nothing wrong
-      report(pid.toString()+' is hit');
-      //var result=postRepack(body);
-      res.json(report(body));
-    }
-    else
-    {//if error happened
-      res.status(500).json(report('pid not found within /posts/',err));
-    }
+    if(err)return next(err);
+    //if nothing wrong
+    report(pid.toString()+' is hit');
+    //var result=postRepack(body);
+    res.obj = body;
+    return next();
   });
 });
 
@@ -233,82 +319,111 @@ api.get('/thread/:tid', function (req, res, next){
   },
   (err,result)=>{
     if(err){next(err);return;}
-    res.json(report(result));
+    res.obj = result;next();
   });
 });
 
-///POST /thread/* handler
-api.post('/thread/:tid',function(req,res,next){
-  var r = validation.validatePost(req.body);
-  if(r!=true)//if failed to validate
-  {
-    next(r);//err thrown
-    return;
-  }
-
-  apifunc.post_to_thread(req.body,req.params.tid,(err,result)=>{
-    if(err){
-      res.status(500).json(report('error in /thread/post',err));
-    }else{
-      var k = {};
-      k.redirect = 'thread/' + result;
-      res.json(report(k));
-    }
-  },
-  false);
-});
-
 //GET /forum/*
-api.get('/forum/:fid',(req,res)=>{
+api.get('/forum/:fid',(req,res,next)=>{
   apifunc.get_threads_from_forum_as_forum({
     fid:req.params.fid,
     start:req.query.start,
     count:req.query.count,
   },
   (err,data)=>{
-    if(!err)
-    {
-      res.json(report(data));
-    }
-    else{
-      res.status(500).json(report('cant get /forum/:fid',err));
-    }
+    if(err)return next(err);
+    res.obj = data;
+    next();
   });
 });
 
-//GET /user
-api.get('/user/:uid',(req,res)=>{
-  apifunc.get_user(req.params.uid,(err,back)=>{
-    if(err){
-      res.status(500).json(report('cant get user',err));
+if(development){
+  //GET /user
+  api.get('/user/get/:uid',(req,res,next)=>{
+    apifunc.get_user(req.params.uid,(err,back)=>{
+      if(err)return next(err);
+      res.obj = back;next();a
+    });
+  });
+}
+
+//POST /user/login
+//test if user exists. if exist generate cookie.
+api.post('/user/login',(req,res,next)=>{
+  var loginobj = req.body;
+  apifunc.verify_user(loginobj,(err,back)=>{
+    if(err){return next(err);}
+    if(!back){return next('unmatch');}
+
+    //if user exists
+    var cookieobj = {
+      username:back.username,
+      uid:back._key,
+      lastlogin:Date.now(),
     }
-    else{
-      res.json(report(back));
-    }
+
+    //put a signed cookie in header
+    res.cookie('userinfo',JSON.stringify(cookieobj),{
+      signed:true,
+      maxAge:(86400*30*1000),
+      encode:String,
+    });
+    var signed_cookie = res.get('set-cookie');
+
+    //put the signed cookie in response, also
+    res.obj = {'cookie':signed_cookie,'instructions':
+    'please put this cookie in request header for api access'};
+
+    next();
   });
 });
 
 var regex_validation = require('nkc_regex_validation');
 //POST /user
-api.post('/user',(req,res)=>{
+api.post('/user',(req,res,next)=>{
   var userobj = req.body;
   var violating = regex_validation.validate(userobj);
-  if(violating){
-    res.status(500).json(report('violated',violating));
-    return;
-  }
+  if(violating)return next(violating);
 
   apifunc.create_user(userobj,(err,back)=>{
-    if(err){
-      res.status(500).json(report('cant create user',err));
-    }
-    else{
-      res.json(report(back));
-    }
+    if(err)return next(err);
+    res.obj = back;
+    next();
   });
 });
 
-api.get('*',(req,res)=>{
+//logout of USER
+//GET /user/logout
+api.get('/user/logout',(req,res,next)=>{
+  //put a signed cookie in header
+  res.cookie('userinfo',{info:'nkc_logged_out'},{
+    signed:true,
+    expires:(new Date(Date.now()-86400000)),
+    encode:String,
+  });
+
+  var signed_cookie = res.get('set-cookie');
+
+  //put the signed cookie in response, also
+  res.obj = {'cookie':signed_cookie,'instructions':
+  'you have logged out. now replace existing cookie with this one'};
+
+  next();
+});
+
+//send apidata back to client
+api.use((req,res,next)=>{
+  if(res.obj)
+  {
+    try{res.json(report(res.obj));}
+    catch(e){return next(e);}
+    return;
+  }
+  return next();
+});
+
+//404 endpoint
+api.use('*',(req,res)=>{
   res.status(404).json(
     report('endpoint not exist','endpoint not exist')
   );
@@ -316,6 +431,14 @@ api.get('*',(req,res)=>{
 
 //unhandled error handler
 api.use((err,req,res,next)=>{
+  if(req.file)
+  {
+    //delete uploaded file when error happens
+    fs.unlink(req.file.filename,(err)=>{
+      if(err)report('error unlinking file, but dont even care',err);
+    });
+  }
+
   res.status(500).json(report('error within /api',err));
 });
 

@@ -13,7 +13,7 @@ function post_upload(target,data,callback)
   {
     if (xhr.readyState==4)
     {
-      if(xhr.status==200){
+      if(xhr.status>=200&&xhr.status<300){
         callback(null,xhr.responseText);
       }else {
         callback(true,xhr.status.toString()+' '+xhr.responseText);
@@ -26,11 +26,14 @@ function post_upload(target,data,callback)
 }
 
 ////server/api/ path to upload
-var upload_target = 'resources';
+var upload_target = ga('select-file','target');
 
 //on click of the upload button
 function uploadfile_click(){
   var formData = new FormData();
+
+  if(!geid('select-file').files[0])return alert('pick one, okay?');
+
   formData.append('file', geid('select-file').files[0]);
   post_upload(upload_target,formData,upload_callback);
 }
@@ -41,13 +44,7 @@ function upload_callback(err,back){
     alert('not 200 failure: '+back);
   }else{
     //do something important here!!
-
-    brrr=JSON.parse(back);
-    if(brrr.rid){
-      alert(brrr.rid);
-    }else {
-      alert(back);
-    }
+    upload_success();
   }
 }
 
