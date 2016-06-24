@@ -6,26 +6,33 @@ global.development = environment !== 'production';
 console.log('running in '+environment+' mode');
 
 var settings = require('server_settings');
+require('helper')();
+
+dash()
+report(settings.server.copyright)
+if(development)report('server secret is: '+settings.cookie_secret.slice(0,32)+"...")
 
 var moment = require('moment');
 var fs = require('fs');
 var net = require('net');
-
-var permissions = require('permissions');
-var helper_mod = require('helper')();
 
 var jaderender = require('jaderender');
 
 var compression = require('compression');
 var express = require('express');
 var rewrite = require('express-urlrewrite');
-var request = require('request');
+var serveIndex = require('serve-index');
 
 var cookieparser = require('cookie-parser');
 
 var apifunc = require('api_functions');
+var queryfunc = require('query_functions');
+
+queryfunc.db_init();
 
 var nkc = express(); //main router
+
+nkc.set('json spaces',2);
 nkc.enable('trust proxy');
 
 //----------------------
@@ -50,13 +57,36 @@ if(use_https){
   var target_server = require('http').Server(nkc);
 }
 //-------------------------------
+//3. gzip
+nkc.use(compression({level:9}));//enable compression
+
+nkc.use(require('serve-favicon')(__dirname+'/resources/site_specific/favicon.ico'));
+
+if(development){
+  nkc.use((req,res,next)=>{
+    console.log("  -".yellow,req.url);
+    //log everything
+    next();
+  })
+}
 
 nkc.use((req,res,next)=>{
-  if(development)
-  console.log("  -".yellow,req.url);
-  //log everything
-  next();
-});
+  //custom rewrite: for SEO purposes
+  var origurl = req.url
+  var mapping = settings.seo_rewrite_mapping
+
+  for(i in mapping){
+    var fr = i
+    var to = mapping[i].to
+
+    origurl = origurl.replace(new RegExp('^'+fr+'(.*)'),to+'$1')
+  }
+
+  origurl = origurl.replace(/^\/f\/(.+?)\/(.+)/,'/t/$2')
+
+  req.url = origurl
+  next()
+})
 
 //1. url rewrite
 for(i in settings.urlrewrite){
@@ -69,31 +99,55 @@ for(i in settings.urlrewrite){
 //2. static file serves
 for(i in settings.root_serve_static)
 {
+  var to = settings.root_serve_static[i].to
+  var st = settings.root_serve_static[i].st||settings.static_settings
+
   if(settings.root_serve_static[i].map){
-    nkc.use(
-      settings.root_serve_static[i].map,
-      express.static(settings.root_serve_static[i].to,settings.static_settings)
-    );
+    var map = settings.root_serve_static[i].map
+
+    nkc.use(map,express.static(to,st))
   } else {
-    nkc.use(
-      express.static(settings.root_serve_static[i].to,settings.static_settings)
-    );
+    nkc.use(express.static(to,st));
   }
 }
 
+nkc.use('/redirect_f/:fid',function(req,res){
+  res.redirect(301,'/f/'+req.params.fid)
+})
+nkc.use('/redirect_t/:tid',function(req,res){
+  res.redirect(301,'/t/'+req.params.tid)
+})
+
+//default avatar redirection
+nkc.use(rewrite('/api/avatar/*','/default/default_avatar_small.gif')) //if avatar not served
+nkc.use(rewrite('/api/avatar_small/*','/default/default_avatar_small.gif')) //if avatar not served
+
+nkc.use('/default/',express.static('resources/default_things/',settings.static_settings)) //staticify
+
+//ikc statics serving
 nkc.use('/recruit',express.static('../ikc')); //serve company pages
 
-//3. gzip
-nkc.use(compression({level:settings.compression_level}));//enable compression
+//toolz statics
+nkc.use('/static',serveIndex('static/',{view:'details'}))
 
-//4. log me : if not static resources
+
+var requestID = 0
+//4. log request, if not static resources
 nkc.use((req,res,next)=>{
-  if(req.url.indexOf('/avatar')>=0)return next(); //dont record avatar requests
+  //if(req.url.indexOf('/avatar/')>=0&&req.method=='GET')return next();
+  //dont record avatar requests
 
   var d=new Date();
   dash();
+  requestID++;
+
+  //reformat ipaddr, kill portnames suffix
+  req.iptrim = req.ip;
+  req.iptrim = req.iptrim.trim().replace( /(:[0-9]{1,})$/ ,''); //kill colon-port
+  //req.iptrim = req.ip
+
   console.log(dateString(d).cyan,
-  req.ip, req.method, req.originalUrl.cyan);
+  req.iptrim, req.method, req.originalUrl.cyan,requestID.toString().yellow);
 
   next();
 });
@@ -117,19 +171,32 @@ nkc.use((req,res,next)=>{
   //if going for avatar
 
   //if userinfo exists
-  console.log(req.userinfo);
-  apifunc.get_user(req.userinfo.uid,(err,back)=>{
-    if(err)return next(); //let go
+  console.log(JSON.stringify(req.userinfo).gray);
+
+  apifunc.get_user(req.userinfo.uid)
+  .then((back)=>{
     if(back.username==req.userinfo.username)
     {
       req.user = back;
     }
-    else
-    {
-      //dont do a thing.
-    }
-    return next();
-  });
+  })
+  .then(()=>{
+    var layer = require('layer')
+    var psnl = new layer.Personal(req.user._key)
+    var u = new layer.User(req.user._key)
+    return psnl.load()
+    .then(psnl=>{
+      var p = psnl.model
+      req.user.new_message = p.new_message
+
+      u.update({tlv:Date.now()});
+    })
+  })
+  .then(next)
+  .catch((err)=>{
+    report('error requesting for user',err)
+    next() //let go even if error.
+  })
 });
 
 //8. routes
@@ -138,23 +205,20 @@ nkc.use((req,res,next)=>{
 var api_handlers = require('api_handlers.js');
 nkc.use('/api',api_handlers.route_handler);
 
-//html serving
-var html_handlers = require('html_handlers');
-nkc.use('/html',html_handlers.route_handler);
-
 var interface_handlers = require('interface_handlers');
 nkc.use('/interface',interface_handlers.route_handler);
 
-//chatroom serving
+// chatroom serving
+// WE DONT USE THIS ANYMORE
 var chat_handlers = require('chat_handlers.js');
 nkc.use('/chat',chat_handlers.route_handler);//routing
 
-//chatroom socket
-var io = require('socket.io')(target_server);
-//this function must be called after the definition of target_server object.
-
-var chat_io = io.of('/chat');// socket.io namespacing
-chat_handlers.socket_handler(chat_io);//pass namespaced socket object into processing function
+// //chatroom socket
+// var io = require('socket.io')(target_server);
+// //this function must be called after the definition of target_server object.
+//
+// var chat_io = io.of('/chat');// socket.io namespacing
+// chat_handlers.socket_handler(chat_io);//pass namespaced socket object into processing function
 
 //root serving
 nkc.get('/',(req,res)=>{
@@ -166,11 +230,6 @@ nkc.get('/',(req,res)=>{
   res.send(
     jaderender('nkc_modules/jade/index.jade',data)
   );
-});
-
-nkc.get('/reload',function(req,res){
-  res.send(`<h1>Reload Page to Stop Server</h1>`);
-  process.exit();
 });
 
 //7. error handling
@@ -197,26 +256,27 @@ nkc.use((err,req,res,next)=>{
 });
 
 //server listening settings
+var listenaddr = '0.0.0.0'
 if(use_https){
   ///-----start https server-----
-  target_server.listen(settings.server.https_port);
+  target_server.listen(settings.server.https_port,listenaddr,listenhandle);
   //-----start http redirection server-----
-  redirection_server.listen(settings.server.port);
+  redirection_server.listen(settings.server.port,listenaddr);
 }
 else{
   //if not using https
-  target_server.listen(settings.server.port);
+  target_server.listen(settings.server.port,listenaddr,listenhandle);
 }
 
-var listening_addr = target_server.address().address;
-var listening_port = target_server.address().port;
-dash();
-report(settings.server.name+' listening on '+listening_addr+' '+listening_port);
+function listenhandle(){
+  var listening_addr = target_server.address().address;
+  var listening_port = target_server.address().port;
+  dash();
+  report(settings.server.name+' listening on '+listening_addr+' '+listening_port);
+}
 
 //end process after pressing ENTER, for debugging purpose
 process.openStdin().addListener('data',function(d){
   if(d.toString().trim()=='')
   process.exit();
 });
-
-//console.log(permissions.getpermissions(['god','default']));

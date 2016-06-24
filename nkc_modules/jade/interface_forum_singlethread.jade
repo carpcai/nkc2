@@ -1,22 +1,62 @@
-- var url = '/thread/' + thread._key
-- var avatar = '/avatar/' + thread.oc.uid
+- var url = '/t/' + thread._key
+- var ocuser = thread.ocuser||{}
+- var lmuser = thread.lmuser||{}
+- var oc = thread.oc
+- var avatar = '/avatar_small/' + oc.uid
+- var uid = oc.uid
+- var digest = thread.digest
+.ForumThreadItem
 
-li.list-group-item(style='padding:8px;padding-left:15px;')
-  .media
-    .media-left.media-middle
-      a(href='#')
-        img.media-object.avatar(src='#{avatar}' style='width:45px;height:45px;')
-    .media-body.media-middle
-      .row
-        .col-xs-8
-          a.f12(href="#{url}") #{thread.oc.t} 
-          //帖子标题链接
+  if 0
+    .ForumThreadItemAvatar
+      a(href='#{url}')
+        img.ForumThreadAvatar(src='#{avatar}')
+  .ForumThreadItemContent
+    .row
+      .col-lg-9.col-md-9.col-sm-8
+        .ForumThreadTitle
+          .tbl(style='display:table-cell;width:72px;')
+            .ForumThreadItemReplyCount #{thread.count-1?(thread.count-1):''}
+            
+            if 1
+              .ForumThreadItemAvatar
+                -var uurl = '/user_profile/'+uid
+                -var avatar = '/avatar_small/'+uid
+                  a(href='#{uurl}')
+                    img.HomeThreadAvatar(src='#{avatar}')
           
-          p.lighttext.
-            #{dateString(thread.oc.toc)} #{thread.oc.username}
-          //帖子发布时间和发布者
+          .tbl2(style='display:table-cell')
+            - var brief = oc.c.replace(/\[.*?]/g,'').trim().slice(0,100)
+            if digest
+              //span.f12.ForumThreadDigestText [精]
+              a.ForumThreadDigestText(href="#{url}" title="#{brief}") #{oc.t} 
+            else
+              a(href="#{url}" title="#{brief}") #{oc.t} 
+            //帖子标题链接
+          
+            .ForumThreadCreatorInfo
+
+              if 0
+                span.lighttext.ForumThreadItemCreationTime #{dateTimeString(thread.toc)}
+              
+              a.lighttext.ForumThreadItemUsername(href='/user_profile/#{ocuser._key}') #{ocuser.username}
+              //帖子发布时间和发布者
+
       
-        .col-xs-4
-          p.lighttext.
-            #{dateString(thread.lm.tlm)} #{thread.lm.username}
-          //帖子最后回复时间和回复者
+      
+          //楼数
+          
+
+    
+      .col-lg-3.col-md-3.col-sm-4
+        
+        .ForumThreadItemReplyInfo
+          //.ForumThreadItemReplyCount #{thread.count-1?(thread.count-1) + ' 回复':''}
+        
+          if Date.now()-thread.tlm<86400000
+            span.reddish #{fromNow(thread.tlm)} 
+          else
+            span #{fromNow(thread.tlm)} 
+            //帖子最后回复时间和回复者
+
+          span.ForumThreadItemUsername(href='/user_threads/#{lmuser.uid}') #{lmuser.username}

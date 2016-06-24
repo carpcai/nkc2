@@ -35,7 +35,9 @@ module.exports = function(){
       console.log(err.toString().red);
       return({'error':description,'detail':err.toString()});
     }else{
-      console.log(dateString().yellow,description);
+      if(development){
+        console.log(dateString().yellow,description);
+      }
 
       if(typeof(description)!='object'){
         return {'message':description};
@@ -43,6 +45,7 @@ module.exports = function(){
       else {
         return description;
       }
+
     }
   };
 
@@ -120,5 +123,19 @@ module.exports = function(){
         callback(null,fastest_file);
       }
     );
+  }
+
+  /**
+  * Shuffles array in place.
+  * @param {Array} a items The array containing the items.
+  */
+  this.shuffle = function (a) {
+    var j, x, i;
+    for (i = a.length; i; i -= 1) {
+      j = Math.floor(Math.random() * i);
+      x = a[i - 1];
+      a[i - 1] = a[j];
+      a[j] = x;
+    }
   }
 }

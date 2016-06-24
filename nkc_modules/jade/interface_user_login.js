@@ -5,28 +5,34 @@ function login_submit(){
   }
 
   if(userobj.username=='')
-  return alert('工作累了，就要休息一下。不要强迫自己上网。仔细看看，用户名是不是没有填？');
+  return screenTopWarning('我在门口捡到了你的用户名，下次不要忘了');
   if(userobj.password=='')
-  return alert('同志，请出示密码！');
+  return screenTopWarning('我在门口捡到了你的密码，下次不要忘了');
 
-  post_api('user/login',userobj,function(err,back){
-    geid('error_info').innerHTML = back;
+  nkcAPI('userLogin',userobj)
+  .then(function(res){
+    geid('error_info').innerHTML = JSON.stringify(res);
     display('error_info_panel')
-    if(err){
-      geid('password').focus();
-      return;
-    }
-    //else
-    //successfully logged in
-    //alert(back);
+
     if(
       document.referrer.toString().indexOf('register')>=0 ||
-      document.referrer.toString().indexOf('logout')>=0
+      document.referrer.toString().indexOf('logout')>=0 ||
+      document.referrer.toString().indexOf('login')>=0 ||
+      document.referrer == ""
     )
-    location.href = '/'; //dont go back to register form
-    else
-    location.href = document.referrer; //go back in history
-  });
+    {
+      location.href = '/'; //dont go back to register form
+    }else{
+      location.href = document.referrer; //go back in history
+    }
+  })
+  .catch(function(err){
+    geid('error_info').innerHTML = JSON.stringify(err);
+    display('error_info_panel')
+    geid('password').focus();
+
+    screenTopWarning(JSON.stringify(err))
+  })
 }
 
 function username_keypress(){

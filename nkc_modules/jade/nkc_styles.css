@@ -1,0 +1,960 @@
+.margin-right{
+  margin-right: 5px;
+}
+
+.rightalign {
+  text-align:right;
+}
+.lighttext {
+  color:#bbb;
+  font-size: 10px;
+}
+.f16 {
+  font-size:16pt;
+}
+.f14 {
+  font-size:14pt;
+}
+.f12 {
+  font-size:12pt;
+}
+.dirt {
+  color:#611;
+}
+
+.hrNarrowSpace{
+  margin-top: 10px;
+  margin-bottom: 9px;
+}
+
+.HomeSEOLink{
+
+font-size: 10px;
+
+background-color: #FBFBFB;
+
+margin-right: 10px;
+
+padding: 3px;
+
+border-radius: 4px;
+
+display: inline-block;
+
+color: #D1DDE4;
+}
+.HomeThreadReplyCount{
+    display: inline-block;
+    width: 26px;
+    text-align: center;
+}
+.HomeLatestThreadCont{
+
+}
+.HomeLatestThreadItem{/* margin-bottom: 18px; *//* padding-bottom: 10px; *//* border-bottom-style: solid; *//* border-bottom-color: #DEDEDE; *//* border-width: 1px; */}
+.HLToc{
+
+margin-bottom: 3px;
+
+position: relative;
+}
+.HLTavatar{
+
+display: none;
+
+vertical-align: middle;
+}
+.HLTavatar img{
+
+width: 24px;
+
+height: 24px;
+
+border-radius: 15%;
+}
+.HLTtitle{
+
+display: inline-block;
+
+/* margin-left: 10px; */
+
+width: calc(100% - 36px);
+
+float: right;
+
+overflow: hidden;
+
+color: #2563A2;
+
+vertical-align: middle;
+}
+.HLTtitletext{
+overflow: hidden;
+/* white-space: pre-wrap; */
+/* height: 23px; */
+display: inline;
+vertical-align: middle;
+/* color: #1259A2; */
+}
+.HLM{
+
+position: relative;
+}
+.HLMavatar{
+
+display: inline;
+
+vertical-align: middle;
+}
+.HLMavatar img{
+
+width: 24px;
+
+height: 24px;
+
+border-radius: 15%;
+
+/* opacity: 0.5; */
+}
+
+.HLMtext{
+
+display: inline-block;
+
+vertical-align: middle;
+
+/* white-space: pre; */
+
+height: 23px;
+
+width: 100%;
+
+/* float: right; */
+
+overflow: hidden;
+
+color: #969696;
+}
+.HLMtext a{
+
+/* white-space: pre; */
+
+/* color: aliceblue; */
+}
+.HLMlink{
+
+color: #929292;
+}
+
+.HLMstat{
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  margin-right: 2px;
+  width: 30px;
+  text-align: center;
+  vertical-align: top;
+  top: 1px;
+  background-color: #F7EAEB;
+  color: #D67272;
+  padding: 1px;
+  border-radius: 3px;
+}
+.HLTstat{
+    background: #BFD7E8;
+    color: #2F68BF;
+}
+.HomeFriendlyLink{
+
+padding-left: 0;
+}
+.HomeFriendlyLink>li{
+
+display: inline-block;
+
+margin-right: 20px;
+}
+
+
+
+.HomeForumContainer{
+margin-bottom: 20px;
+padding: 8px;
+/* background-color: #ecf1ef; */
+/* height: 135px; */
+/* overflow-y: hidden; */
+/* border: #E2E2E2; */
+/* border-width: 1px; */
+/* border-style: solid; */
+/* border-radius: 5px; */
+}
+.HomeForumTitle{
+height: 26px;
+position: relative;
+margin-bottom: 3px;
+}
+
+.HomeForumDescription{
+    font-size: 10px;
+    display: none;
+    color: #c3c3c3;
+    height: 46px;
+    overflow-y: hidden;
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+
+.HomeForumTitleCircle{
+
+  width: 24px;
+
+  height: 24px;
+
+  border-radius: 50%;
+
+  display: inline-block;
+
+  vertical-align: middle;
+
+  margin-right: 7px;
+}
+
+.HomeForumTitlePrimary{
+  color: #424242;
+  font-size: 14pt;
+  display: inline-block;
+  /* position: absolute; */
+  white-space: nowrap;
+  overflow:hidden !important;
+  /* text-overflow: ellipsis; */
+  /* right: 20px; */
+  max-width: 100%;
+  vertical-align: middle;
+  /* left: 0; */
+  /* top: 0; */
+}
+.HomeForumTitleSecondary{
+  font-size: 10pt;
+  display: block;
+  position: absolute;
+  top: 1px;
+  right: 0px;
+  bottom: 0px;
+}
+
+.HomeForumTitlePostCountToday{
+  color: #FFFFFF;
+  background-color: #ffb3b3;
+  padding: 2px;
+  margin-right: 2px;
+  border-radius: 5px;
+}
+.HomeForumTitlePostCount{
+  color: #848484;
+}
+.HomeForumTitleThreadCount{
+  color: #C3943C;
+}
+
+.HomeThreadItem{
+  margin-bottom: 3px;
+  border-color: black;
+  //
+  border-style: dashed;
+  border-width: 1px;
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 23px;
+}
+
+.HomeThreadAvatarPosition {
+  display: inline-block;
+  display: none;
+}
+
+.HomeThreadAvatar{
+  width :24px;
+  height:24px;
+  border-radius: 10%;
+}
+
+.HomeThreadText{
+  /* margin-left:3px; */
+  white-space: pre;
+  display: inline-block;
+  color: #2563A2;
+  position: absolute;
+  top: 1px;
+  left: 30px;
+  right: 10px;
+  /* width: 200px; */
+  font-size: 11pt;
+  overflow: hidden !important;
+}
+.HomeThreadText:visited{
+color: #4f84c3;
+}
+
+.HomeThreadTextDigest{
+  color: #d67a06;
+}
+.HomeThreadTextDigest:visited{
+  color: #a55d04;
+}
+
+.HomeThreadTextRightAlign{
+  display: inline-block;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  /* color: #2a5a5a; */
+  background: #ffffff;
+  padding-left: 3px;
+  /* font-size: 12pt; */
+}
+
+.ForumTitleCircle{
+
+width: 32px;
+
+height: 32px;
+
+border-radius: 50%;
+
+display: inline-block;
+
+margin-right: 5px;
+
+vertical-align: middle;
+}
+.ForumName{
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 32px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.ForumsListBody{
+  margin-right: 20px;
+  display: inline-block;
+  width: 130px;
+  position: relative;
+}
+.ForumsListGroupItem{
+
+  color: #ccc;
+}
+.ForumsListForumItem{
+
+  padding-left: 10px;
+}
+
+.ForumsListCountNumber{
+
+  display: inline-block;
+
+  position: absolute;
+
+  right: 0;
+}
+
+.NavigationPaging{
+
+  margin: 0;
+
+  margin-right: 7px;
+}
+
+.reddish {
+  color: #e99;
+}
+
+.blueish{
+
+  color: #7676D0;
+}
+
+.avatar {
+  border-radius: 10%;
+}
+
+.d-inline{
+  display:inline;
+}
+p {
+  margin:0px;
+  margin-top:5px;
+  margin-bottom:5px;
+}
+
+blockquote {
+  padding:7px 10px;
+  border-left-color:#ddd;
+  background-color:#f8f8ee;
+  margin:10px 0px;
+}
+
+
+.ForumThreadList{
+/* border-collapse: collapse; */
+padding-left: 6px;
+/* display: table; */
+/* background: #ecf1ef; */
+border-radius: 5px;
+margin-bottom: 10px;
+width: 100%;
+}
+.ForumThreadItem {
+  position: relative;
+  /* display: table-row; */
+  border-bottom-style: dashed;
+  border-bottom-color: #e2e2e2;
+  border-width: 1px;
+}
+.ForumThreadTitle{
+font-size: 16px;
+display: inline;
+/* vertical-align: middle; */
+}
+.ForumThreadItem>div {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.ForumThreadAvatar {
+
+  border-radius: 10%;
+
+  width: 40px;
+}
+.ForumThreadItemAvatar {
+  /* vertical-align: middle; */
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.ForumThreadCreatorInfo{
+display: inline-block;
+/* width: 50%; */
+}
+
+.ForumThreadDigestText{
+  color: #d48900;
+  margin-right: 6px;
+}
+
+.ForumThreadItemContent {
+  vertical-align: middle;
+  /* position: absolute; */
+  padding: 0;
+  /* padding-left: 10px; */
+  /* display: table-row; */
+  /* min-width: 400px; */
+  /* right: 140px; */
+  /* left: 45px; */
+}
+.ForumThreadItemReplyCount{
+  display: inline-block;
+  margin-right: 7px;
+  text-align: right;
+  font-size: 14px;
+  /* position: absolute; */
+  color: #D28A78;
+  width: 25px;
+  /* vertical-align: middle; */
+  /* right: 100px; */
+}
+
+.ForumThreadItemReplyInfo{
+display: inline;
+font-size: 10px;
+/* vertical-align: bottom; */
+}
+.ForumThreadItemReplyInfo span{
+    margin-right: 10px;
+}
+
+.ForumThreadItemUsername{
+display: inline-block;
+color: #777777;
+}
+.ForumThreadItemCreationTime{
+
+  display: inline-block;
+
+  margin-right: 10px;
+}
+
+.ThreadBox{
+
+}
+
+.ThreadTitleForumLink{
+
+  display: block;
+
+  margin-bottom: 0;
+
+  color: #bbb;
+
+  font-size: 14pt;
+}
+.ThreadTitle {
+  display: block;
+  margin-bottom: 0;
+}
+
+.ThreadTitleText, .ThreadTitleText:visited{
+  color: black;font-size: 22pt;margin-bottom: 5px;margin-top: 0;display: inline-block;
+}
+
+.ThreadTitleText:hover, .ThreadTitleText:focus{
+
+  color: #6B6B6B;
+
+  text-decoration: none;
+}
+.ThreadTitleAuxillary{
+  display: inline-block;
+  margin-left: 10px;
+  /* margin-top: 8px; */
+}
+
+.ThreadTitleAuxillaryLink{
+  display: inline-block;
+  /* margin-left: 10px; */
+  /* position: absolute; */
+  /* top: 5px; */
+}
+
+.ThreadTitleAuxillaryLink a{
+  display: inline-block;
+  margin-right: 9px;
+  color: #CBDCEA;
+  /* position: absolute; */
+  /* top: 5px; */
+}
+
+.ThreadTitleHr {
+  margin-top: 10px;
+  margin-bottom: 13px;
+}
+.ThreadSinglePostHr {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.ThreadPostBody{
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.ThreadPostBody img{
+  max-width: 100%;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+.ThreadPostBody blockquote {
+  font-size: 10pt;
+}
+
+.ThreadPostBody span.xbbcode-code, pre code{
+
+font-size: 12px;
+
+font-family: consolas,Monospace,monospace;
+
+line-height: 1.4;
+}
+
+.ThreadPostBody pre{
+  padding: 0;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.ThreadPostBody p
+{margin-top: 5px;margin-bottom: 11px;}
+
+.ThreadPostBody span.xbbcode-code{
+
+margin-top: 5px;
+
+margin-bottom: 5px;
+}
+
+.ThreadPostAvatar{
+
+  border-radius: 10%;
+
+  width: 52px;
+
+  height: 52px;
+}
+
+.ThreadPostTitle{
+  color: #822;
+}
+.ThreadPostTitleMeta{
+  display: inline-block;
+  /* color: #9C9C9C; */
+  margin: 0px;
+  margin-right: 5px;
+}
+
+.ThreadPostTitleUsername{
+
+  display: inline;
+
+  margin-right: 8px;
+
+  color: #8295A7;
+}
+.PostContentImage{
+  max-width: 100%;
+}
+.PostEmbedFlash{
+
+  width: 480px;
+
+  max-width: 100%;
+
+  height: 300px;
+}
+
+.PostResourceDownload{
+
+  margin-right: 8px;
+
+  display: inline-block;
+
+  margin-bottom: 5px;
+}
+.PostResourceDownloadLink{
+
+}
+.PostResourceDownloadThumbnail{
+
+  display: inline;
+}
+.PostResourceFileSize{
+
+  font-size: 10pt;
+
+  display: inline;
+
+  margin-left: 3px;
+
+  color: #d66;
+}
+.ResourceList{
+
+}
+.ResourceListItem{
+  display: block;
+  margin-bottom: 5px;
+}
+.ResourceListItemThumb{
+  display: inline-block;
+  margin-right: 10px;
+}
+.ResourceListItemText{
+  display: inline-block;
+}
+
+.ThreadPostCredits{
+  display: table;
+  /* width: 100%; */
+  padding: 10px;
+  margin-top: 8px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #D8D8D8;
+  /* background-color: #FFFFFF; */
+  border-radius: 5px;
+}
+.ThreadPostCreditItem{
+
+  display: table-row;
+
+  font-size: 14px;
+}
+.ThreadPostCreditItem>div{
+display: table-cell;
+padding: 3px;
+padding-right: 6px;
+}
+.TPCQ ,.TPCType{
+
+  font-size: 16px;
+}
+.TPCQ{
+
+  color: #CC0000;
+
+  /* font-weight: bold; */
+}
+.TPCIAI{
+
+  width: 24px;
+
+  height: 24px;
+
+  border-radius: 3px;
+}
+
+.padless{
+  padding:0px;
+}
+
+.parent{
+  position:relative;
+  width:100%;
+}
+
+.avatar-left {
+  /* margin-top: 10px; */
+  margin-bottom: 0;
+  width: 52px;
+  float: left;
+}
+
+.content-right {
+  /* margin-top: 10px; */
+  /* margin-bottom: 10px; */
+  width: calc(100% - 63px);
+  /* min-width: 410px; */
+  float: right;
+}
+
+.dclearfix:after { //clearfix exists in bootstrap already
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.DigestThreadList{
+
+  position: relative;
+}
+.DigestThreadListItem{
+
+  position: relative;
+
+  /* border-style: solid; */
+
+  /* border-width: 1px; */
+
+  /* border-left-width: 5px; */
+
+  /* border-color: #E8E8E8; */
+
+  /* background: #FBFBFB; */
+
+  /* border-radius: 4px; */
+
+  /* padding: 10px; */
+
+  margin-bottom: 12px;
+}
+.DigestThreadTitle{
+
+  font-size: 18px;
+
+  color: #E69F19;
+
+  /* font-family: initial; */
+}
+.DigestThreadAvatar{
+
+  width: 32px;
+
+  height: 32px;
+
+  border-radius: 15%;
+}
+.DigestThreadAvatarPlace{
+
+  display: inline-block;
+
+  vertical-align: top;
+
+  width: 32px;
+
+  height: 32px;
+}
+.DigestThreadBody{
+
+  display: inline-block;
+
+  position: relative;
+
+  width: calc(100% - 42px);
+
+  padding-left: 6px;
+}
+.DigestThreadContent{
+
+  /* margin-left: 10px; */
+
+  font-size: 13px;
+
+  color: #696969;
+
+  overflow: hidden;
+}
+.DigestThreadMeta{
+
+  /* margin-left: 10px; */
+
+  color: #C5C5C5;
+}
+.DigestThreadMeta>span{
+
+  margin-right: 10px;
+}
+
+
+h1,h2,h3 {
+  font-family:Arial, "Helvetica Neue",Helvetica,"STXihei",SimHei,"Microsoft YaHei","微软雅黑",sans-serif;
+}
+
+h4,h5,h6 {
+  font-family:Arial, "Helvetica Neue",Helvetica,"Microsoft YaHei","微软雅黑",sans-serif;
+}
+
+.SMSTable{
+    font-size: 12px;
+    border-collapse: separate;
+    border-spacing: 5px;
+    padding-left: 0;
+    margin: 0;
+}
+.SMSTableItem{
+border-bottom-style: solid;
+border-width: 1px;
+/* border-radius: 6px; */
+border-color: #dadada;
+/* background-color: #f9f9f9; */
+padding: 2px;
+/* margin: 4px; */
+}
+.SMSFirstRow{
+    display: inline-block;
+    margin: inherit;
+    padding: inherit;
+}
+.SMSFirstRow span{
+    margin-right: 6px;
+}
+.SMSSecondRow{
+    display: inline-block;
+    font-size: 12pt;
+    /* border-style: inherit; */
+    /* border-width: inherit; */
+    /* border-radius: 4px; */
+    /* border-color: #ece8e8; */
+    background-color: white;
+    padding: 6px;
+    margin: inherit;
+}
+.SMSBGSelf{
+    display: inline-block;
+    background-color: #D1F1D1;
+    padding: 3px;
+    border-radius: 3px;
+}
+.SMSBGOther{
+    display: inline-block;
+    background-color: #E5F1FF;
+    padding: 3px;
+    border-radius: 3px;
+}
+.SMSSentByMe{color: #0D7107;}
+.SMSSentByOthers{
+    color: #3088D6;
+}
+
+.NavBarLinkArea{
+    margin-top: 10px;
+}
+.NavBarLinkArea a{
+    margin-left: 5px;
+    margin-right: 5px;
+    display: inline-block;
+}
+
+.PersonalSettingZone textarea{
+  width: 400px;
+  height: 100px;
+}
+
+pre {
+  padding:0;
+}
+
+.nkcHiddenBox{
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ff6d6d;
+    border-radius: 5px;
+    padding: 5px;
+    background-color: #fff8f8;
+}
+.nkcHiddenNotes{
+    color: white;
+    margin-bottom: 5px;
+    background: #ff8888;
+    border-radius: 3px;
+    text-align: center;
+    display: block;
+}
+.nkcHiddenContent{
+    border-style: dashed;
+    background: white;
+    border-width: 1px;
+    border-color: #ffcccc;
+    border-radius: 3px;
+    padding: 5px;
+}
+
+.UserProfileSection1{
+text-align: center;
+/* border-style: dashed; */
+/* border-width: 1px; */
+/* border-color: #c7c7c7; */
+/* border-radius: 5px; */
+padding: 12px;
+}
+.UserProfileTile{
+    border-radius: 7px;
+    border-style: solid;
+    border-color: #8c8c8c;
+    overflow: hidden;
+    border-width: 1px;
+    text-align: center;
+    margin-bottom: 30px;
+    height: 120px;
+}
+.TileFact{
+    font-family: monospace;
+    font-size: 20pt;
+    padding: 5px;
+}
+.TileTitle{
+    background: #f7f7f7;
+    /* color: white; */
+    display: block;
+    font-size: 18px;
+    padding: 5px;
+}
+
+.PanoLVUList{
+display: inline-block;
+margin: 5px;
+}
+
+.PanoLVUList span{
+margin-left: 5px;
+}

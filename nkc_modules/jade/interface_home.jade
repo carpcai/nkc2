@@ -1,0 +1,82 @@
+extends bootstrap_base.jade
+
+block title
+  meta(name='description' content='从这里开始你的发现之旅。华语世界最纯粹的科技/文艺/爱好社区, Since 2001.')
+  
+  meta(property='og:image' content='http://bbs.kechuang.org/resources/site_specific/umaru_chem_300x200.png')
+  meta(property='og:title' content='科创论坛')
+  meta(property='og:site_name' content='科创论坛')
+  meta(property='og:description' content='从这里开始你的发现之旅。华语世界最纯粹的科技/文艺/爱好社区, Since 2001.')
+  
+  title #{data.site.name} - #{data.site.description}
+
+block content
+  .container-fluid(style='max-width:1400px')
+
+    
+    //include interface_home_newest.jade
+    
+    if data.user
+      .row
+        .col-md-12
+          span 我的板块
+          hr.hrNarrowSpace
+          
+      if data.user.focus_forums && data.user.focus_forums.length>0
+        .row
+          -var ff = data.user.focus_forums.split(',').filter(n=>{return n.trim()!=''}).slice(0,12)
+          -var userChosenForumArray = []
+          -for(fid of ff){for(g of data.grouparray){for(af of g.forumgroup){ if(af._key==fid){af.parentforum = g.parentforum ;userChosenForumArray.push(af)} }}}
+          if 1
+            each forum,index in userChosenForumArray
+              -var parent = forum.parentforum
+              include interface_home_singleforum.jade
+      else
+        .row
+          .col-md-12
+            |你还没有关注任何板块。
+            a(href='/api/operation?operation=viewPersonal') 去个人设置页面
+            
+      hr.hrNarrowSpace
+    
+    .row
+      - var cindex = 0
+      each group,gindex in data.grouparray
+        - var parent = group.parentforum
+        each forum,findex in group.forumgroup 
+          - var index = cindex + findex
+          include interface_home_singleforum.jade
+          
+        - cindex += group.forumgroup.length
+    
+    .row
+      .col-md-12(style='margin-bottom:10px;')
+      
+        -var mapping = data.seo_arr
+        if mapping
+          -for(i in mapping)
+            -var fr = i
+            -var to = mapping[i].to
+            -var display_name = mapping[i].display_name
+            a.HomeSEOLink(href='#{fr+"?&digest=true"}') #{display_name}
+      
+        if data.answersheet_count
+          span(style='color:#ccc;display:inline-block;') - [ 学术委员会 ] 已经有 #{'0b'+data.answersheet_count.toString(2).toUpperCase()} 人次通过了测试
+          
+    .row
+      .col-md-12
+        hr.hrNarrowSpace
+        :thru
+          <ul class="HomeFriendlyLink">
+          <li><a href="http://www.leiphone.com/" target="_blank">雷锋网</a></li>
+          <li><a href="http://gyhj.org/" target="_blank">故园怀旧</a></li>
+          <li><a href="http://www.5csf.com" target="_blank">5C科幻协会</a></li>
+          <li><a href="http://www.timestation.cn" target="_blank">准时钟表网</a></li>
+          <li><a href="http://www.hellocq.net/forum" target="_blank">hellocq火腿社区</a></li>
+          <li><a href="http://www.moz8.com" target="_blank">模友之吧</a></li>
+          </ul>
+    
+  include debug_output.jade
+
+block scripts
+  script(src='/interface_common.js')

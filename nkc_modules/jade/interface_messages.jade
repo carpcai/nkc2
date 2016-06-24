@@ -1,0 +1,71 @@
+extends bootstrap_base.jade
+
+block title
+  title 短消息
+  meta#replytarget(value='#{data.replytarget}')
+
+block content
+  .container
+    .row
+      .col-md-12
+        
+        .row
+          .form-group.col-sm-3
+            input#username.form-control(type='text' placeholder='收信人用户名' value="#{data.receiver||''}")
+        
+          .form-group.col-sm-7
+            input#content.form-control(type='text' placeholder='消息内容')
+            
+          .form-group.col-sm-2
+            button#send.btn.btn-default() 发送
+            
+
+        -var smslist = data.smslist
+        .SMSTable
+            
+          each s,index in smslist
+            -var sender = s.us
+            -var receiver = s.ur
+            -var senderid = s.s
+            -var receiverid = s.r
+            -var content = s.c
+            .SMSTableItem
+              .SMSFirstRow
+                span.reddish #{dateTimeString(s.toc)}
+                span #{fromNow(s.toc)}
+                
+                span
+                  - var uid = sender._key
+                  - var avatar = '/avatar_small/' + uid
+                    a(href='/user_profile/#{uid}')
+                      img.HomeThreadAvatar(src='#{avatar}')
+
+                span(onclick="setReceiver('#{sender.username}')") #{sender.username}
+                  
+                span ▶
+                span
+                  - var uid = receiver._key
+                  - var avatar = '/avatar_small/' + uid
+                    a(href='/user_profile/#{uid}')
+                      img.HomeThreadAvatar(src='#{avatar}')
+                    
+                span(onclick="setReceiver('#{receiver.username}')") #{receiver.username} 
+                
+                
+                
+                
+              .SMSSecondRow
+                if sender.username == data.user.username
+                  .SMSSentByMe
+                    div!=plain(content)
+                else
+                  .SMSSentByOthers
+                    div!=plain(content)
+              
+              
+        
+  include debug_output.jade
+
+block scripts
+  script(src='/interface_common.js')
+  script(src='/interface_messages.js')

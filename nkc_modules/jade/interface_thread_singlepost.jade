@@ -1,28 +1,82 @@
 //do sth with the post variable here
-
-//horizontal line
-if(index==0)
-else
-  hr
+- var po = data.permittedOperations
+    
+if !post.disabled || (post.disabled && po.enablePost)
+  //horizontal line
+  hr(id='#{post._key}').ThreadSinglePostHr
   
-//post itself
-.media
-  .media-left.media-top
-    a(href='#')
-      img.media-object.avatar(src='/avatar/#{post.uid}' style='width:60px;height:60px;')
-  .media-body.media-top
-    .row
-      .col-xs-12
-        if(post.t&&post.t!=''&&index!=0)
-          h4.d-inline.dirt #{post.t}
-        p.d-inline.lighttext #{post.username} - #{dateString(post.toc)}
-        div.f12
-          case post.l
-            when 'markdown'
-              div!= markdown(post.c)
-            when 'bbcode'
-              div!= bbcode(post.c)
-            when 'plain'
-            default
-              div!= plain(post.c)
+  - var uid = post.uid
+  - var user = post.user
+  //post itself
+  .parent.clearfix(id='p#{post._key}')
+    .avatar-left
+      - var title = user?getUserDescription(user):''
+      a(href='/user_profile/#{uid}' title='#{title}')
+        img.ThreadPostAvatar(src='/avatar/#{post.uid}')
+    
+    .content-right
+      if(post.t&&post.t!=''&&index!=0)
+        span.dirt.ThreadPostTitle #{post.t}
+        
+      .ThreadPostTitleMeta
+        a.ThreadPostTitleUsername(href='/user_profile/#{uid}') #{user?user.username:''}
+        
+        span.lighttext #{fromNow(post.toc)} - 
+        span.lighttext #{dateTimeString(post.toc)} 
+        
+        if data.paging
+          -var floornumber = data.paging.start+index
+          a(href='/t/#{data.thread._key}#{page?"?&page="+data.paging.page.toString():""}##{post._key}').lighttext /#{floornumber}
+        
+      .ThreadTitleAuxillaryLink
+        - var po = data.permittedOperations
+        - if(po.postTo)
+          a(href="javascript:quotePost('#{post._key}')") 引用
+          
+        - if(po.addPostToCart)
+          a(href="javascript:cartPost('#{post._key}')") 加入管理车
+          
+        - if(po.disablePost)
+          a(href="javascript:disablePost('#{post._key}')") 屏蔽
+
+          
+        if data.user
+          - var user = data.user
+          - var ownership = user._key===uid
+          - if(testModifyTimeLimit(data,ownership,post.toc))
+            a(href='/e?target=post/#{post._key}') 编辑
+            
+          - var cc = data.contentClasses
+          - if(cc.classified)
+            - var ipoc = post.ipoc||post.ip||post.ocip||null
+          
+            if ipoc 
+              - var queryforip = 'http://ip138.com/ips138.asp?ip='+ipoc.toString()+'&action=2'
+              a.lighttext(href='#{queryforip}') #{ipoc}
+        
+      div.ThreadPostBody!= experimental_render(post)
+
+      if post.toc!=post.tlm
+        p.lighttext [修改于 #{fromNow(post.tlm)} - #{dateString(post.tlm)}]
+      //span #{post.user?post.user.post_sign:''}
+      
+      if post.credits
+        .ThreadPostCredits
+          each c,index in post.credits
+            .ThreadPostCreditItem
+              .TPCQ #{(c.q>0?'+':'-')}#{c.q}
+              .TPCType #{creditString(c.type)}
+              .TPCIA
+                a(href='/user_threads/#{c.uid}')
+                  img.TPCIAI(src='/avatar_small/#{c.uid}')
+                  
+              .TPCIssuer #{c.username||c.uid}
+              .TPCDate #{dateTimeString(c.toc).split(' ')[0]}
+              .TPCReason #{c.reason}                
+  
+- var po = data.permittedOperations
+if post.disabled
+  
+  - if(po.enablePost)
+    a(href="javascript:enablePost('#{post._key}')") [此楼已屏蔽，点击解除]
             

@@ -1,0 +1,116 @@
+extends bootstrap_base.jade
+
+block title
+  - var user = data.user
+  title #{user.username} - #{data.site.name}
+  meta#replytarget(value='#{data.replytarget}')
+
+block content
+  .container
+    .row
+      .col-md-12
+        if data.examinated
+          p.f12.reddish 如果没猜错的话，你刚刚通过了一次考试，并获得了证书。
+        
+        if data.permittedOperations
+          if !data.permittedOperations.postTo
+            p.f12.reddish 根据系统记录，你貌似没有发布内容的权限。也许是因为你还没有参加#[a(href='/exam') 考试]，又或者被管理员封号了。
+        
+    .row
+      .col-md-12
+        .panel.panel-default
+          .panel-body
+            - var user = data.user
+            h1 #{user.username}
+            hr
+            
+            div.f12!= plain(getUserDescription(user))
+            hr
+
+            |帖子签名
+            if user.post_sign
+              div!=markdown_safe(user.post_sign)
+              hr
+            
+            p.f12
+              a(href='/user_threads/#{user._key}') 查看本人的帖子
+              br
+              a(href='/user_profile/#{user._key}') 查看本人的对外页面
+              br
+              a(href='/api/operation?operation=viewPersonal') 修改个人设置（密码）
+            
+            hr
+            
+            img(src='/avatar/#{user._key}')
+            
+            //upload section
+            div
+              div
+                input#select-file(type='file' target='avatar' accept='image/*')
+              div
+                button(onclick='uploadfile_click()') 上传
+              div#paste_target 黏贴上传测试中。
+              
+            hr
+            
+            h4 权限信息
+            
+            - var user = data.user
+            p 用户拥有以下证书:
+            if user.certs
+              ul
+                - for(i in user.certs)
+                  li #{user.certs[i]} - #{getDisplayNameOfCert(user.certs[i])}
+            
+            if data.allCertificates
+              p 系统中所有可选证书:
+              ul
+                each i in data.allCertificates
+                  li #{i} - #{getDisplayNameOfCert(i)}
+            
+            
+            if data.permittedOperations
+              - var po = data.permittedOperations
+              p 允许调用以下API: 
+              ul
+                - for(i in po)
+                  if po[i]
+                    li
+                      span #{i} 
+                      span #{po[i]}
+                      
+              p 显式禁止以下API: 
+              ul
+                - for(i in po)
+                  if po[i]==false
+                    li
+                      span #{i} 
+                      span #{po[i]}
+                      
+            if data.contentClasses
+              - var cc = data.contentClasses
+              p 拥有以下内容查看权限:
+              ul
+                - for(i in cc)
+                  if cc[i]
+                    li #{i}
+                    
+            if data.certificateDefinitions
+              p 系统权限总表:
+              - var k = data.certificateDefinitions
+              div(style="font-family: consolas; padding: 10px;color:white;background-color:gray;")!= plain(JSON.stringify(k,null,4))
+                    
+            //a.btn.btn-default(href='/interface/editor?target=#{data.replytarget}') 修改个人简介
+
+  include debug_output.jade
+    
+block scripts
+  script(src='/interface_common.js')
+  script(src='/interface_uploader_one.js')
+  
+  script.
+    function upload_success(){
+      location.reload();
+    }
+      
+      

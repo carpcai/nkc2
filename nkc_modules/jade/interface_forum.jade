@@ -1,7 +1,23 @@
 extends bootstrap_base.jade
 
 block title
-  title #{data.forum.display_name}
+  title #{data.forum.display_name} - #{data.site.name}
+  
+  -var forum  = data.forum
+  if forum.description
+    -var processed=forum.description.replace(/\[.*?]|\#|\n|\<.*?>/gm,'').trim().slice(0,140)
+  else
+    -var processed = forum.display_name
+    
+  meta(name='description' content='#{processed}')
+  
+  meta(property='og:image' content='http://bbs.kechuang.org/resources/site_specific/umaru_chem_300x200.png')
+  meta(property='og:title' content='#{forum.display_name}')
+  meta(property='og:site_name' content='科创论坛')
+  meta(property='og:description' content='#{processed}')
+  
+  if data.threads.length>0
+    meta(property='article:modified_time' content='#{(new Date(data.threads[0].toc)).toISOString()}')
   
   style.
     .marginless {
@@ -13,63 +29,84 @@ block title
 block content        
   .container
     .row
-      .col-md-10.col-md-offset-1
-        //split 10/12 for post area
-          
-        .panel.panel-default
-          .panel-body(style='padding-bottom:0px;')
-            .row
-              .col-md-12
-                //img(src='http://bbs.kechuang.org/themes/site/dingzhi/images/logo.png')
-                h1 #{data.forum.display_name}
-            .row
-              .col-md-8
-                p.
-                  #{data.forum.description}
-                a.btn.btn-default(href='/interface/editor?target=#{data.replytarget}') 发帖
-              .col-md-4
-                p.
-                  今日：#{data.forum.stats.posts_today} 主题：#{data.forum.stats.threads_total} 总帖：#{data.forum.stats.posts_total}
-                text 版主：
-                for i,index in data.forum.owners
-                  a.d-inline(href='#') #{index?', ':''}#{i.username}
-                
-            .row
-              .col-md-12
-                nav
-                  ul.pagination.marginless
-                    each val,index in [1,2,3,4,5,6,'>>']
-                      if index==0
-                        li.active
-                          a(href='#')=val
-                      else
-                        li
-                          a(href='#')=val
-                  ul.pagination.marginless
-                    each val,index in ['所有','精华']
-                      if index==0
-                        li.active
-                          a(href='#')=val
-                      else
-                        li
-                          a(href='#')=val
-              
-                  ul.pagination.marginless
-                    each val,index in ['回复序','发布序']
-                      if index==0
-                        li.active
-                          a(href='#')=val
-                      else
-                        li
-                          a(href='#')=val
-                
-                  
-          ul.list-group
-            each thread,index in data.threads
-              include interface_forum_singlethread.jade
 
-                        
-          .panel-body
-            a.btn.btn-default(href='/interface/editor?target=#{data.replytarget}') 发帖                 
-      
+      .col-sm-9.col-md-10
+        //split 10/12 for post area
+        .row
+          .col-md-12
+            //img(src='http://bbs.kechuang.org/themes/site/dingzhi/images/logo.png')
+            
+            -var forum = data.forum
+            .ForumTitleCircle(style='background-color:#{forum.color}')
+            .ForumName #{forum.display_name}
+        .row
+          .col-xs-8
+            if data.forum.description
+              div!=markdown_safe(data.forum.description)
+            
+            if data.replytarget
+              a.btn.btn-default(style="margin-bottom:10px" href='/e?target=#{data.replytarget}') 新帖
+            
+            
+          .col-xs-4
+            p
+              span 今日： #{data.forum.count_posts_today} 主题： #{data.forum.count_threads} 回复： #{data.forum.count_posts}
+  
+            if data.forum.moderators
+              span 版主：
+                - var moderators = data.forum.moderators
+                each k in moderators
+                  a.d-inline.margin-right(href='/user_profile_byname/#{k}') #{k}
+
+        .row
+          .col-md-12
+            nav
+              include interface_navigation_paging.jade
+              
+              - var paging = data.paging
+              - var digest = data.digest
+              - var class_str_all = digest?'':'active'
+              - var class_str_digest = digest?'active':''
+              
+              ul.pagination.NavigationPaging
+                - var page = paging?paging.page:null
+                li(class="#{class_str_all}")
+                  a(href='#{toQueryString({page})}') 俱
+                  
+                li(class="#{class_str_digest}")
+                  a(href='#{toQueryString({page,digest:true})}') 精
+          
+              ul.pagination.NavigationPaging
+                each val,index in ['復序','帖序','施工中']
+                  if index==0
+                    li.active
+                      a(href='#')=val
+                  else
+                    li
+                      a(href='#')=val
+                
+        if data.toppedThreads && data.toppedThreads.length>0
+          .ForumThreadList
+            each thread,index in data.toppedThreads
+              include interface_forum_singlethread.jade
+          hr.hrNarrowSpace
+              
+        .ForumThreadList
+          each thread,index in data.threads
+            include interface_forum_singlethread.jade
+
+        .row
+          .col-md-12
+            nav
+              include interface_navigation_paging.jade
+          
+            if data.replytarget
+              a.btn.btn-default(style="margin-top:10px" href='/e?target=#{data.replytarget}') 新
+          
+      .col-sm-3.col-md-2
+        include interface_forums_list.jade
+              
   include debug_output.jade
+
+block scripts
+  script(src='/interface_common.js')

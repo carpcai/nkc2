@@ -4,29 +4,116 @@ var helper = require('helper');
 
 var jade = require('jade');
 var settings = require('server_settings.js');
-var commonmark = require('commonmark');
-var plain_escape = require('jade/plain_escaper');
-var xbbcode = require('xbbcode/xbbcode');
 
-function bbcodeconvert(input){
-  return xbbcode.process({
-    text:input,
-  }).html;
+var moment = require('moment');
+moment.locale('zh-cn');//yo!
+
+var render = require('nkc_render');
+
+jade.filters.markdown = render.commonmark_render;
+jade.filters.markdown_safe = render.commonmark_safe;
+//jade.filters.bbcode = render.bbcode_render;
+jade.filters.plain = render.plain_render;
+jade.filters.thru = function(k){return k}
+jade.filters.experimental = render.experimental_render
+
+function fromNow(time){
+  return moment(time).fromNow();
 }
 
-var commonreader = new commonmark.Parser();
-var commonwriter = new commonmark.HtmlRenderer();
-var commonparser = (input)=>{return commonwriter.render(commonreader.parse(input));} // result is a String
+function dateTimeString(t){
+  return moment(t).format('YYYY-MM-DD HH:mm')
+}
 
-jade.filters.markdown = commonparser;
-jade.filters.bbcode = bbcodeconvert;
-jade.filters.plain = plain_escape;
+
+function getCertsInText(user){
+  var perm = require('permissions')
+
+  var certs =  perm.calculateThenConcatCerts(user)
+
+  var s = ''
+  for(i in certs){
+    var cname = perm.getDisplayNameOfCert(certs[i])
+    s+=cname+' '
+  }
+  return s
+}
+
+function getUserDescription(user){
+  return `${user.username}\n`+
+  `学术分 ${user.xsf||0}\n`+
+  `科创币 ${user.kcb||0}\n`+
+  `${getCertsInText(user)}`
+}
 
 var jadeoptions = {
-  markdown:commonparser,
-  bbcode:bbcodeconvert,
-  plain:plain_escape,
-  'dateString':dateString,
+  seo_rewrite_mapping:settings.seo_rewrite_mapping,
+  seo_reverse_rewrite:function(url){
+    for(i in settings.seo_rewrite_mapping)
+    {
+      var map = i
+      var to = settings.seo_rewrite_mapping[i].to
+
+      url = url.replace(new RegExp('^'+to+'(.*)'),map+'$1')
+    }
+    return url
+  },
+  markdown:render.commonmark_render,
+  markdown_safe:render.commonmark_safe,
+  bbcode:render.bbcode_render,
+  plain:render.plain_render,
+  experimental_render:render.experimental_render,
+  dateString:dateString,
+  dateTimeString,
+  fromNow:fromNow,
+  fromNowAbbr:function(t){
+    return fromNow(t)
+    .replace(/ 秒前/,'s')
+    .replace(/ 小时前/,'h')
+    .replace(/ 天前/,'d')
+    .replace(/ 分钟前/,'m')
+    .replace(/ 个月前/,'mo')
+    .replace(/ 年前/,'y')
+  },
+  creditString:function(t){
+    switch (t) {
+      case 'xsf':
+      return '学术分'
+      break;
+      case 'kcb':
+      return '科创币'
+      break;
+      default:
+      return '[未定义积分]'
+    }
+  },
+
+  getDisplayNameOfCert:function(cert){
+    var perm = require('permissions')
+    return perm.getDisplayNameOfCert(cert)
+  },
+
+  getUserDescription,
+
+  toQueryString:function(object){
+    var qs = ''
+    for(key in object){
+      var value = object[key]
+      if(value){
+        qs+= '&'+key.toString()+'='+ value.toString()
+      }
+    }
+    return '?'+qs
+  },
+
+  testModifyTimeLimit:function(params,ownership,toc){
+    try{
+      require('permissions').testModifyTimeLimit(params,ownership,toc)
+    }catch(err){
+      return false
+    }
+    return true
+  },
 };
 
 Object.assign(jadeoptions,settings.jadeoptions); //apply settings from settings.js

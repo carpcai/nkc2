@@ -1,19 +1,41 @@
 extends scratch.jade
 
 block head
+  script.
+    (function() {
+    var method;
+    var methods = [
+        'assert', 'clear', 'count', 'debug', 'dir', 'dirxml', 'error',
+        'exception', 'group', 'groupCollapsed', 'groupEnd', 'info', 'log',
+        'markTimeline', 'profile', 'profileEnd', 'table', 'time', 'timeEnd',
+        'timeline', 'timelineEnd', 'timeStamp', 'trace', 'warn'
+    ];
+    var length = methods.length;
+    var console = (window.console = window.console || {});
+    while (length--) {
+        method = methods[length];
+        // Only stub undefined methods.
+        if (!console[method]) {
+            console[method] = function () {};
+        }
+    }
+    }());
+
   meta(charset='utf-8')
   meta(http-equiv="X-UA-Compatible" content="IE=edge")
   meta(name="viewport" content="width=device-width, initial-scale=1")
   
-  link(href="/bootstrap/css/bootstrap.css" rel='stylesheet')
+  link(href="/bootstrap/css/bootstrap.css" rel='stylesheet' type='text/css')
+  link(href='/nkc_styles.css' rel='stylesheet' type='text/css')
+  
+  link(rel='shortcut icon' href='/favicon.ico')
+  
+  meta(name="google-site-verification" content="daD64Dm9iV1usCNqLOqzBdBP_wqJYXNBr3ACy979VwY")
 
   block title
     title bootstrap_base
   
-  
 block body
-
-  include nkc_styles.jade
   
   block navbar
     include nkc_navbar.jade
@@ -23,13 +45,20 @@ block body
   
   block footer
     include nkc_footer.jade
+    
+  script(src='/jquery/jquery-1.11.1.js')
+  script(src='/bootstrap/js/bootstrap.min.js')
+  script(src='/promise/promise.min.js')
   
   block scripts 
-  //faster load of app-specific code
   
-  script(src='/jquery-1.11.1.js')
-  script(src='/bootstrap/js/bootstrap.min.js')
+  :thru
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.4.0/styles/github.min.css">
+    <script src="//cdn.jsdelivr.net/highlight.js/9.4.0/highlight.min.js"></script>
+  script.
+    if(window.ReHighlightEverything){window.ReHighlightEverything()}
   
   script.
-    console.error('你们码农千万要注意啊，不要“见着风是得雨”啊，看到这条消息，你码农本身也要判断，明白这意思吧？ 假使一些完全无中生有的东西，你再帮他console.error()一遍，你等于……你也有责任吧？')
-    console.error('github: https://github.com/ctmakro/nkc2')
+    console.log('(c)2016 成都科创科学文化研究院/广东爱理论科技有限公司')
+    console.log('Project Repository: https://github.com/lovetheory/nkc2')
+    
